@@ -60,3 +60,93 @@ INNER JOIN Invoice AS Iv
 GROUP BY C.CustomerID, C.FirstName, C.LastName
 ORDER BY TotalRevenue DESC;
 
+-- Top 5 customers by revenue
+SELECT C.CustomerId as Cid,C.FirstName,C.Lastname,C.Country as Country,sum(Iv.Total) as total_revenue
+from Customer as C
+INNER JOIN Invoice as Iv
+on C.CustomerId = Iv.CustomerId
+Group by Cid
+ORDER BY total_revenue DESC
+LIMIT 10;
+
+-- Bottom 10 customers by revenue
+SELECT C.CustomerId as Cid,C.FirstName,C.Lastname,C.Country as Country,sum(Iv.Total) as total_revenue
+from Customer as C
+INNER JOIN Invoice as Iv
+on C.CustomerId = Iv.CustomerId
+Group by Cid
+ORDER BY total_revenue ASC
+LIMIT 10;
+
+-- Number of customers per country.
+select C.Country, count(C.Country) as NumberOfCustomers
+from Customer as C
+GROUP BY Country
+ORDER BY NumberOfCustomers;
+
+-- Top 5 countries with the most customers.
+select C.Country, count(C.Country) as NumberOfCustomers
+from Customer as C
+GROUP BY Country
+ORDER BY NumberOfCustomers DESC
+LIMIT 5;
+
+-- Which cities have the highest concentration of customers?
+SELECT City,Count(City) as NumberOfCustomers
+from Customer 
+GROUP BY City
+ORDER BY NumberOfCustomers DESC;
+
+-- Customers who made < 7 purchase.
+select C.FirstName,C.LastName,count(Iv.InvoiceId) as PurchaseCount
+from Customer as C
+LEFT JOIN Invoice as Iv
+on C.CustomerId = Iv.CustomerId
+GROUP BY C.FirstName,C.LastName
+HAVING PurchaseCount < 7
+ORDER BY PurchaseCount;
+
+-- Customer Engagement
+
+-- Customers who purchased in more than 1 year.
+
+-- -- Average time gap between purchases per customer.
+
+-- Customers grouped by their assigned SupportRep (Employee table).
+Select C.FirstName as CustomerFirstName, C.LastName as CustomerLastName, E.FirstName as EmployeeFirstName, E.LastName as EmployeeLastName
+from Customer C
+LEFT JOIN Employee E
+on C.SupportRepId = E.EmployeeId;
+
+-- Total number of customers handled by each SupportRep.
+select E.FirstName as EmployeeFirstName, E.LastName as EmployeeLastName, count(C.CustomerId) as NumberOfCustomers
+from Employee as E
+LEFT JOIN Customer as C
+on E.EmployeeId = C.SupportRepId
+Group by EmployeeFirstName,EmployeeLastName
+ORDER by NumberOfCustomers DESC;
+
+-- Most popular genre by customer.
+SELECT 
+  C.CustomerId,
+  C.FirstName,
+  C.LastName,
+  G.Name AS GenreName,
+  COUNT(Inv.InvoiceLineId) AS TimesPurchased
+FROM Customer AS C
+INNER JOIN Invoice AS Iv
+  ON C.CustomerId = Iv.CustomerId
+INNER JOIN InvoiceLine AS Inv
+  ON Iv.InvoiceId = Inv.InvoiceId
+INNER JOIN Track AS T
+  ON Inv.TrackId = T.TrackId
+INNER JOIN Genre AS G
+  ON T.GenreId = G.GenreId
+GROUP BY C.CustomerId, C.FirstName, C.LastName, G.Name
+ORDER BY C.CustomerId, TimesPurchased DESC;
+
+-- To get only the top genre per customer (one per person):
+
+-- Customers who purchased across multiple genres.
+
+-- Which media type (MP3, AAC, etc.) each customer prefers.
