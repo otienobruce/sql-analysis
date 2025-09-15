@@ -49,7 +49,11 @@ select Artist.ArtistId, Artist.Name, COUNT(Album.AlbumId) as Album_count
 from Artist
 INNER JOIN Album
 ON Album.ArtistId = Artist.ArtistId
-GROUP BY Artist.ArtistId
+GROUP BY Artist.ArtistId;
 -- ORDER BY Album_count
 
-
+select * 
+from Customer
+inner join Invoice
+on Customer.CustomerId = Invoice.CustomerId
+Order by Invoice.Total
