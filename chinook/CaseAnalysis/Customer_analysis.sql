@@ -178,13 +178,28 @@ GROUP BY C.CustomerId,C.FirstName,C.LastName
 having GenreCount > 1
 
 -- Which media type (MP3, AAC, etc.) each customer prefers.
-select C.CustomerId as Cid,C.FirstName Fname,C.LastName Lname,M.MediaTypeId Mid,M.Name Mname
-from MediaType as M
-inner join Track T
- on M.MediaTypeId = T.MediaTypeId
-INNER JOIN InvoiceLine Inv
- on Inv.TrackId = T.TrackId
-inner join Invoice Iv
- on Iv.InvoiceId - Inv.InvoiceId
-inner JOIN Customer C
- on Iv.CustomerId = C.CustomerId
+WITH MediaCounts AS (
+  SELECT 
+    C.CustomerId AS Cid,
+    C.FirstName AS Fname,
+    C.LastName AS Lname,
+    M.Name AS Mediatype,
+    COUNT(*) AS PurchaseCount,
+    ROW_NUMBER() OVER (
+      PARTITION BY C.CustomerId 
+      ORDER BY COUNT(*) DESC
+    ) AS rn
+  FROM Customer C
+  INNER JOIN Invoice Iv
+    ON Iv.CustomerId = C.CustomerId
+  INNER JOIN InvoiceLine Inv
+    ON Iv.InvoiceId = Inv.InvoiceId
+  INNER JOIN Track T
+    ON T.TrackId = Inv.TrackId
+  INNER JOIN MediaType M
+    ON T.MediaTypeId = M.MediaTypeId
+  GROUP BY C.CustomerId, C.FirstName, C.LastName, M.Name
+)
+SELECT Cid, Fname, Lname, Mediatype, PurchaseCount
+FROM MediaCounts
+WHERE rn = 1;
