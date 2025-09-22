@@ -106,12 +106,6 @@ GROUP BY C.FirstName,C.LastName
 HAVING PurchaseCount < 7
 ORDER BY PurchaseCount;
 
--- Customer Engagement
-
--- Customers who purchased in more than 1 year.
-
--- -- Average time gap between purchases per customer.
-
 -- Customers grouped by their assigned SupportRep (Employee table).
 Select C.FirstName as CustomerFirstName, C.LastName as CustomerLastName, E.FirstName as EmployeeFirstName, E.LastName as EmployeeLastName
 from Customer C
@@ -146,7 +140,51 @@ GROUP BY C.CustomerId, C.FirstName, C.LastName, G.Name
 ORDER BY C.CustomerId, TimesPurchased DESC;
 
 -- To get only the top genre per customer (one per person):
+SELECT *
+FROM (
+SELECT 
+ C.CustomerId as Cid,
+ C.FirstName as Fname,
+ C.LastName Lname,
+ G.Name as GenreName,
+ count(G.Name) as GenreCount,
+ Rank() OVER (PARTITION BY C.CustomerId ORDER BY count(G.Name) DESC) as GenreRank
+FROM Customer C
+INNER JOIN Invoice Iv
+ ON Iv.CustomerId = C.CustomerId
+INNER JOIN InvoiceLine Inv
+ on Iv.InvoiceId = Inv.InvoiceId
+INNER JOIN Track T
+ ON T.TrackId = Inv.TrackId
+INNER JOIN Genre G
+ ON T.GenreId = G.GenreId
+GROUP BY C.CustomerId,C.FirstName,C.LastName,G.Name
+)Ranked
+Having GenreRank = 1
 
 -- Customers who purchased across multiple genres.
+select C.CustomerId as Cid, C.FirstName Fname, C.LastName as Lname,
+ count(Distinct(G.Name)) as GenreCount
+FROM Customer C
+INNER JOIN Invoice Iv
+ ON Iv.CustomerId = C.CustomerId
+INNER JOIN InvoiceLine Inv
+ on Iv.InvoiceId = Inv.InvoiceId
+INNER JOIN Track T
+ ON T.TrackId = Inv.TrackId
+INNER JOIN Genre G
+ ON T.GenreId = G.GenreId
+GROUP BY C.CustomerId,C.FirstName,C.LastName
+having GenreCount > 1
 
 -- Which media type (MP3, AAC, etc.) each customer prefers.
+select C.CustomerId as Cid,C.FirstName Fname,C.LastName Lname,M.MediaTypeId Mid,M.Name Mname
+from MediaType as M
+inner join Track T
+ on M.MediaTypeId = T.MediaTypeId
+INNER JOIN InvoiceLine Inv
+ on Inv.TrackId = T.TrackId
+inner join Invoice Iv
+ on Iv.InvoiceId - Inv.InvoiceId
+inner JOIN Customer C
+ on Iv.CustomerId = C.CustomerId
